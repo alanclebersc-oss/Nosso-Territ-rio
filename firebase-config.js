@@ -12,10 +12,10 @@
    as regras do Firestore (veja o README).
    ============================================================ */
 export const firebaseConfig = {
-  apiKey: "COLE_SUA_API_KEY_AQUI",
-  authDomain: "COLE_SEU_PROJETO.firebaseapp.com",
-  projectId: "COLE_SEU_PROJETO",
-  storageBucket: "COLE_SEU_PROJETO.appspot.com",
-  messagingSenderId: "000000000000",
-  appId: "1:000000000000:web:0000000000000000000000"
+  apiKey: "AIzaSyBwcp_D8eKawcxKBeZj92Z956GTB1MvE_o",
+  authDomain: "mercado-e1477.firebaseapp.com",
+  projectId: "mercado-e1477",
+  storageBucket: "mercado-e1477.firebasestorage.app",
+  messagingSenderId: "367052493966",
+  appId: "1:367052493966:web:f2c87537712a46727ba5df"
 };
