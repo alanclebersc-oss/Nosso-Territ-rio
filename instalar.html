@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#EAF3EC">
+<title>Instalar o Nosso Território</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F3F8F4;
+    --card:#FFFFFF;
+    --line:#DDEAE1;
+    --green:#2F6B4F;
+    --green-dark:#234F3B;
+    --green-soft:#E4F1E8;
+    --ink:#1E2A22;
+    --ink-muted:#5C6E63;
+    --radius:16px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+    padding-bottom:56px;
+  }
+  .wrap{ max-width:560px; margin:0 auto; padding:0 22px; }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    text-align:center;
+    padding:52px 0 30px;
+  }
+  .app-icon{
+    width:68px; height:68px; border-radius:18px;
+    background:linear-gradient(160deg, var(--green), var(--green-dark));
+    display:flex; align-items:center; justify-content:center;
+    margin:0 auto 18px;
+    box-shadow:0 10px 22px -8px rgba(47,107,79,0.45);
+  }
+  .app-icon svg{ width:32px; height:32px; color:#fff; }
+
+  .title-wrap{
+    position:relative;
+    display:inline-block;
+    padding:14px 22px;
+    margin:0 0 14px;
+  }
+  .title-wrap::before{
+    content:"";
+    position:absolute;
+    inset:-4px -10px;
+    background:
+      repeating-linear-gradient(
+        -35deg,
+        rgba(47,107,79,0.10) 0px,
+        rgba(47,107,79,0.10) 2px,
+        transparent 2px,
+        transparent 12px
+      );
+    border-radius:14px;
+    z-index:0;
+  }
+  h1{
+    position:relative;
+    z-index:1;
+    font-family:'Caveat', cursive;
+    font-weight:700;
+    font-size:clamp(42px, 11vw, 56px);
+    line-height:1;
+    margin:0;
+    color:var(--green-dark);
+  }
+
+  .lede{
+    color:var(--ink-muted);
+    font-size:16px;
+    max-width:38ch;
+    margin:0 auto 28px;
+  }
+
+  .btn-install{
+    appearance:none; border:none; cursor:pointer; text-decoration:none;
+    display:inline-flex; align-items:center; gap:10px;
+    background:var(--green); color:#fff;
+    font-family:'Inter', sans-serif; font-weight:700; font-size:16px;
+    padding:15px 26px; border-radius:12px;
+    box-shadow:0 10px 22px -8px rgba(47,107,79,0.5);
+    transition:transform .15s ease, box-shadow .15s ease, background .15s ease;
+  }
+  .btn-install:hover{ background:var(--green-dark); transform:translateY(-1px); }
+  .btn-install svg{ width:19px; height:19px; flex:none; }
+
+  .link-plain{
+    display:block;
+    color:var(--ink-muted); font-size:14.5px; text-decoration:none;
+    margin-top:14px;
+    border-bottom:1px solid transparent;
+  }
+  .link-plain:hover{ color:var(--green-dark); border-color:var(--green-dark); }
+
+  .helper{
+    margin:18px auto 0; font-size:13.5px; color:var(--ink-muted);
+    max-width:36ch;
+  }
+
+  /* ---------- QR CARD ---------- */
+  .qr-card{
+    display:flex; align-items:center; gap:16px; text-align:left;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:16px 18px;
+    margin-top:26px;
+  }
+  .qr-card img{
+    width:78px; height:78px; border-radius:8px; flex:none;
+  }
+  .qr-card p{ margin:0; font-size:14px; color:var(--ink-muted); }
+  .qr-card strong{ color:var(--ink); font-weight:600; }
+
+  /* ---------- SECTION ---------- */
+  .section{ margin-top:44px; }
+  h2{
+    font-family:'Fraunces', serif; font-weight:600; font-size:21px; margin:0 0 16px;
+    color:var(--green-dark);
+  }
+
+  /* ---------- TABS ---------- */
+  .tabs{ display:flex; gap:8px; margin-bottom:18px; }
+  .tab{
+    flex:1; text-align:center; cursor:pointer;
+    padding:11px 10px; border-radius:10px;
+    font-weight:600; font-size:14.5px;
+    background:var(--card); border:1px solid var(--line);
+    color:var(--ink-muted);
+    transition:all .15s ease;
+    user-select:none;
+  }
+  .tab.active{
+    background:var(--green-soft); border-color:var(--green); color:var(--green-dark);
+  }
+
+  .steps{ display:none; flex-direction:column; }
+  .steps.active{ display:flex; }
+  .step{
+    display:flex; gap:14px;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:16px;
+    margin-bottom:10px;
+  }
+  .step-num{
+    font-weight:700;
+    color:#fff; background:var(--green);
+    font-size:14px;
+    flex:none; width:26px; height:26px;
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .step-body b{ display:block; font-size:15.5px; margin-bottom:3px; }
+  .step-body span{ color:var(--ink-muted); font-size:14px; }
+
+  /* ---------- INFO LIST ---------- */
+  .info-list{ display:flex; flex-direction:column; gap:10px; }
+  .info-item{
+    display:flex; gap:14px; align-items:flex-start;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:15px 16px;
+  }
+  .info-item svg{ width:20px; height:20px; color:var(--green); flex:none; margin-top:2px; }
+  .info-item b{ display:block; font-size:15px; margin-bottom:3px; }
+  .info-item p{ margin:0; font-size:13.5px; color:var(--ink-muted); line-height:1.5; }
+
+  footer{
+    margin-top:52px;
+    text-align:center;
+    font-size:12.5px;
+    color:var(--ink-muted);
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hero">
+    <div class="app-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.1-7-11a7 7 0 0 1 14 0c0 4.9-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
+    </div>
+
+    <div class="title-wrap"><h1>Nosso Território</h1></div>
+    <p class="lede">Controle de território da congregação, com mapas e saídas de campo, tudo no seu celular.</p>
+
+    <button class="btn-install" onclick="document.getElementById('appLink').click()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13"/><path d="m7 11 5 5 5-5"/><path d="M5 21h14"/></svg>
+      Instalar no meu celular
+    </button>
+
+    <a id="appLink" class="link-plain" href="https://alanclebersc-oss.github.io/Nosso-Territ-rio/" target="_blank" rel="noopener">Só abrir, sem instalar</a>
+
+    <p class="helper">A instalação é feita pelo próprio navegador. Não baixa arquivo, não pede senha extra e não ocupa quase nada de espaço.</p>
+
+    <div class="qr-card">
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=0&color=30-70-51&data=https%3A%2F%2Falanclebersc-oss.github.io%2FNosso-Territ-rio%2F" alt="QR code para abrir o Nosso Território" loading="lazy">
+      <p>Para instalar no celular de outra pessoa, peça para ela <strong>apontar a câmera</strong> para este código.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Como instalar</h2>
+    <p style="color:var(--ink-muted); font-size:14.5px; margin-top:-8px; margin-bottom:18px;">São dois toques. Escolha o seu aparelho.</p>
+
+    <div class="tabs">
+      <div class="tab active" onclick="showTab('android')">Android</div>
+      <div class="tab" onclick="showTab('iphone')">iPhone</div>
+    </div>
+
+    <div class="steps active" id="tab-android">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <b>Abra esta página no Chrome</b>
+          <span>Se você chegou pelo WhatsApp ou pelo Instagram, toque nos três pontinhos do canto e escolha <em>Abrir no navegador</em>.</span>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <b>Toque no botão verde aqui em cima</b>
+          <span>Se ele não aparecer, use o menu ⋮ do Chrome e escolha <em>Instalar app</em> ou <em>Adicionar à tela inicial</em>.</span>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <b>Confirme em Instalar</b>
+          <span>O ícone do Nosso Território aparece na tela inicial, junto dos outros aplicativos.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="steps" id="tab-iphone">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <b>Abra esta página no Safari</b>
+          <span>No iPhone, só o Safari consegue instalar. Se abriu no Chrome, copie o endereço e cole no Safari.</span>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <b>Toque no botão de compartilhar</b>
+          <span>É o quadradinho com a seta para cima, na barra de baixo.</span>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <b>Escolha "Adicionar à Tela de Início"</b>
+          <span>Role a lista até achar. Depois toque em <em>Adicionar</em>, no canto de cima.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Bom saber</h2>
+    <div class="info-list">
+      <div class="info-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 2.1l4 4-4 4"/><path d="M3 12.2v-2a4 4 0 0 1 4-4h14"/><path d="M7 21.9l-4-4 4-4"/><path d="M21 11.8v2a4 4 0 0 1-4 4H3"/></svg>
+        <div>
+          <b>Sincroniza em qualquer aparelho</b>
+          <p>Entre com a mesma conta no celular, no tablet ou no computador e os territórios aparecem automaticamente nos dois.</p>
+        </div>
+      </div>
+      <div class="info-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        <div>
+          <b>Atualiza sozinho</b>
+          <p>Quando sai uma versão nova, ela chega na próxima vez que você abrir com internet. Não precisa reinstalar.</p>
+        </div>
+      </div>
+      <div class="info-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <div>
+          <b>Não instala nada extra</b>
+          <p>O atalho abre o mesmo site de sempre, em tela cheia, sem passar por loja de aplicativos.</p>
+        </div>
+      </div>
+      <div class="info-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>
+        <div>
+          <b>Backup manual</b>
+          <p>Na tela Ajustes, salve um arquivo de backup de vez em quando, principalmente se quiser guardar uma cópia à parte.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>Desenvolvido por Alan Correa ©</footer>
+</div>
+
+<script>
+  function showTab(name){
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.steps').forEach(s => s.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+    document.getElementById('tab-' + name).classList.add('active');
+  }
+</script>
+</body>
+</html>
