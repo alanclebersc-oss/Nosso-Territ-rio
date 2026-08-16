@@ -821,8 +821,11 @@ btnAuthSubmit.addEventListener('click', async ()=>{
 });
 btnAuthGoogle.addEventListener('click', async ()=>{
   clearAuthErr();
-  try{ await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
+  try{ await auth.signInWithRedirect(new firebase.auth.GoogleAuthProvider()); }
   catch(err){ showAuthErr(authErrMsg(err.code)); }
+});
+auth.getRedirectResult().catch(err=>{
+  if(err && err.code) showAuthErr(authErrMsg(err.code));
 });
 btnAuthForgot.addEventListener('click', async ()=>{
   clearAuthErr();
