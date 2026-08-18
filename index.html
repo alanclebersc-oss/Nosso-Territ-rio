@@ -331,6 +331,11 @@ textarea{resize:vertical;min-height:62px}
 .histedit{background:var(--surface2);color:var(--muted);border:1px solid var(--line)}
 .histdel{background:var(--red-soft);color:var(--red)}
 .histedit:active,.histdel:active{transform:scale(.92)}
+.dirhead{display:flex;align-items:center;gap:11px;padding:2px 0 8px;cursor:pointer;user-select:none}
+.dirhead .chev{flex:none;transition:transform .2s;color:var(--faint)}
+.dirhead .chev.open{transform:rotate(90deg)}
+.dirhead .add{width:28px;height:28px;border-radius:50%;flex:none;background:var(--surface2);color:var(--muted);border:1px solid var(--line);font-size:16px;font-weight:700;line-height:1;display:grid;place-items:center}
+.dirhead .add:active{transform:scale(.92)}
 .histempty{text-align:center;color:var(--muted);padding:22px 10px;font-size:13.5px}
 
 /* ---------- mapa geral (upload) ---------- */
@@ -517,6 +522,11 @@ textarea{resize:vertical;min-height:62px}
       <span><b>Histórico dos territórios</b><small>Ver início e conclusões registradas</small></span>
     </button>
 
+    <button class="gomaps" id="btnOpenDir" style="margin-top:10px">
+      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <span><b>Histórico dos dirigentes</b><small>Nome e data mais recente de cada um</small></span>
+    </button>
+
     <div class="panel">
       <h3>Andamento por área</h3>
       <div id="byGroup"></div>
@@ -615,6 +625,21 @@ textarea{resize:vertical;min-height:62px}
   <div class="wrap">
     <div class="searchrow"><input class="search" id="histSearch" type="search" placeholder="Buscar número ou nome" autocomplete="off"></div>
     <div id="histBoard"></div>
+  </div>
+</section>
+
+<!-- ---------- histórico dos dirigentes (tela cheia) ---------- -->
+<section class="sheet" id="dirsheet" aria-hidden="true">
+  <div class="dbar">
+    <button class="iconbtn" id="dirBack" aria-label="Voltar"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <div class="t"><div class="k">Registro</div><div class="n">Histórico dos dirigentes</div></div>
+  </div>
+  <div class="wrap">
+    <div class="searchrow"><input class="search" id="dirSearch" type="search" placeholder="Buscar dirigente" autocomplete="off"></div>
+    <div class="progtop" style="margin:0 0 10px">
+      <button class="add" id="btnNewDir"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Novo registro</button>
+    </div>
+    <div id="dirBoard"></div>
   </div>
 </section>
 
@@ -732,6 +757,23 @@ textarea{resize:vertical;min-height:62px}
     </div>
   </div>
 </div>
+
+<div class="modal" id="dirmodal" aria-hidden="true">
+  <div class="box">
+    <div class="grip"></div>
+    <h3 style="font-size:12px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin:0 0 13px" id="dirTitle">Novo registro</h3>
+    <div class="fields">
+      <label class="f full"><span>Dirigente</span><input type="text" id="dName" list="dirNames" placeholder="Nome do dirigente"></label>
+      <label class="f"><span>Data</span><input type="date" id="dData"></label>
+      <label class="f full"><span>Território</span><select id="dTerr" style="width:100%;background:var(--surface2);border:1px solid var(--line);border-radius:var(--r3);padding:11px 12px;font-size:15px"></select></label>
+    </div>
+    <div class="acts" style="justify-content:space-between">
+      <button class="btn danger" id="dDel">Excluir</button>
+      <span style="display:flex;gap:8px"><button class="btn" id="dCancel">Cancelar</button><button class="btn primary" id="dSave">Salvar</button></span>
+    </div>
+  </div>
+</div>
+<datalist id="dirNames"></datalist>
 
 <div class="modal" id="askmodal" aria-hidden="true">
   <div class="box">
@@ -922,7 +964,7 @@ function addHist(t,start,end){
   if(last && last.start===start && last.end===(end||'')) return;
   t.hist.push({start,end:end||'',ts:Date.now()});
 }
-function seed(n){ const t={}; for(let i=1;i<=n;i++) t[String(i)]=blankT(); return {v:3,t,p:{items:[],ts:0},s:{items:[],ts:0},cfg:{congName:'',city:'',total:n,ts:Date.now()}}; }
+function seed(n){ const t={}; for(let i=1;i<=n;i++) t[String(i)]=blankT(); return {v:3,t,p:{items:[],ts:0},s:{items:[],ts:0},dir:{items:[],ts:0},cfg:{congName:'',city:'',total:n,ts:Date.now()}}; }
 function rebuildKeys(){
   const n=Math.max(1,(DB.cfg&&DB.cfg.total)||1);
   KEYS=Array.from({length:n},(_,i)=>String(i+1));
@@ -1205,6 +1247,7 @@ cfgBack.addEventListener('click',()=>{
 window.addEventListener('popstate',()=>{
   if(cfgsheet.classList.contains('open')){ closeCfgSheet(); return; }
   if(histsheet.classList.contains('open')){ closeHistSheet(); return; }
+  if(dirsheet.classList.contains('open')){ closeDirSheet(); return; }
   if(sheet.classList.contains('open')) closeSheet();
 });
 btnReset.addEventListener('click',async ()=>{ if(!await ask('Apagar tudo deste território: datas, responsável e observações?','Apagar tudo'))return;
@@ -1303,6 +1346,118 @@ heDel.addEventListener('click', async ()=>{
   touch(heKey); renderHistBoard(); closeHistEdit(); toast('Registro excluído');
 });
 
+/* ---------- histórico dos dirigentes (tela cheia) ---------- */
+function dirItems(){ return (DB.dir.items||[]).filter(i=>!i.del); }
+function touchDir(){ DB.dir.ts=Date.now(); dirty.add('@dir'); persist(); }
+function dirNames(){ return [...new Set(dirItems().map(i=>(i.nome||'').trim()).filter(Boolean))]; }
+function buildDirNames(){
+  const all=[...new Set([...dirNames(), ...people()])].sort((a,b)=>a.localeCompare(b,'pt'));
+  document.getElementById('dirNames').innerHTML = all.map(n=>`<option value="${esc(n)}">`).join('');
+}
+function terrLabel(k){ return k? (k + (DB.t[k]&&DB.t[k].name? ' · '+esc(DB.t[k].name) : '')) : 'não informado'; }
+let expandedDir=new Set();
+function groupedDir(){
+  const term=(dirSearch.value||'').trim().toLowerCase();
+  const map={};
+  dirItems().forEach(it=>{
+    const nome=(it.nome||'').trim(); if(!nome) return;
+    (map[nome]=map[nome]||[]).push(it);
+  });
+  return Object.keys(map)
+    .filter(n=>!term || n.toLowerCase().includes(term))
+    .map(n=>({ nome:n, entries: map[n].slice().sort((a,b)=>(b.data||'').localeCompare(a.data||'')) }))
+    .sort((a,b)=>(b.entries[0].data||'').localeCompare(a.entries[0].data||'') || a.nome.localeCompare(b.nome,'pt'));
+}
+function renderDirBoard(){
+  const groups=groupedDir();
+  dirBoard.innerHTML = groups.length? groups.map(g=>{
+    const open=expandedDir.has(g.nome), last=g.entries[0];
+    const rows=g.entries.map(h=>`<div class="histrow">
+        <span class="hd"><b>${h.data? br(h.data):'Sem data'}</b><small>Território ${terrLabel(h.terr)}</small></span>
+        <button class="histedit" data-id="${h.id}" aria-label="Editar registro"><svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
+        <button class="histdel" data-id="${h.id}" aria-label="Excluir registro">✕</button>
+      </div>`).join('');
+    return `<div class="panel" style="margin:0 0 12px">
+      <div class="dirhead" data-nome="${esc(g.nome)}">
+        <span style="width:32px;height:32px;border-radius:50%;background:var(--acc-soft);color:var(--acc);display:grid;place-items:center;font-size:11.5px;font-weight:800;flex:none">${esc(initials(g.nome))}</span>
+        <span style="flex:1;min-width:0">
+          <span style="display:block;font-size:13.5px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(g.nome)}</span>
+          <span style="display:block;font-size:11.5px;color:var(--muted)">${last.data? 'Último registro: '+br(last.data) : 'Sem data registrada'}${g.entries.length>1? ' · '+g.entries.length+' registros':''}</span>
+        </span>
+        <button class="add" data-add="${esc(g.nome)}" aria-label="Novo registro para ${esc(g.nome)}">+</button>
+        <svg class="chev${open?' open':''}" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+      </div>
+      ${open? rows : ''}
+    </div>`;
+  }).join('') : '<div class="empty">Nenhum dirigente registrado ainda.<br>Toque em “Novo registro” para começar.</div>';
+}
+function closeDirSheet(){
+  dirsheet.classList.remove('open'); dirsheet.setAttribute('aria-hidden','true');
+  document.body.style.overflow='';
+}
+btnOpenDir.addEventListener('click',()=>{
+  dirSearch.value=''; expandedDir.clear(); renderDirBoard();
+  dirsheet.classList.add('open'); dirsheet.setAttribute('aria-hidden','false');
+  document.body.style.overflow='hidden'; dirsheet.scrollTop=0;
+  history.pushState({s:1},'');
+});
+dirBack.addEventListener('click',()=>{
+  closeDirSheet();
+  if(history.state&&history.state.s===1){ try{ history.back(); }catch(e){} }
+});
+dirSearch.addEventListener('input', renderDirBoard);
+dirBoard.addEventListener('click', async e=>{
+  const add=e.target.closest('[data-add]');
+  if(add){ openDir(null, add.dataset.add); return; }
+  const ed=e.target.closest('.histedit[data-id]');
+  if(ed){ openDir(ed.dataset.id); return; }
+  const de=e.target.closest('.histdel[data-id]');
+  if(de){
+    if(!await ask('Excluir este registro?','Excluir')) return;
+    const it=DB.dir.items.find(x=>x.id===de.dataset.id);
+    if(it){ it.del=true; it.ts=Date.now(); }
+    touchDir(); renderDirBoard(); toast('Registro excluído');
+    return;
+  }
+  const head=e.target.closest('.dirhead');
+  if(head){
+    const nome=head.dataset.nome;
+    if(expandedDir.has(nome)) expandedDir.delete(nome); else expandedDir.add(nome);
+    renderDirBoard();
+  }
+});
+let editDir=null;
+function openDir(id, presetNome){
+  editDir=id||null;
+  const it = id? dirItems().find(x=>x.id===id) : null;
+  dirTitle.textContent = it? 'Editar registro' : 'Novo registro';
+  dDel.style.display = it? '' : 'none';
+  dName.value = it? (it.nome||'') : (presetNome||'');
+  dData.value = it? (it.data||'') : today();
+  buildDirNames();
+  dTerr.innerHTML = '<option value="">— sem território —</option>' +
+    KEYS.map(k=>`<option value="${k}">${k}${DB.t[k].name?' · '+esc(DB.t[k].name):''}</option>`).join('');
+  dTerr.value = it? (it.terr||'') : '';
+  dirmodal.classList.add('open'); dirmodal.setAttribute('aria-hidden','false');
+}
+function closeDirModal(){ dirmodal.classList.remove('open'); dirmodal.setAttribute('aria-hidden','true'); editDir=null; }
+dCancel.addEventListener('click', closeDirModal);
+dirmodal.addEventListener('click', e=>{ if(e.target===dirmodal) closeDirModal(); });
+btnNewDir.addEventListener('click', ()=>openDir(null));
+dSave.addEventListener('click', ()=>{
+  if(!dName.value.trim()){ toast('Informe o nome do dirigente'); return; }
+  const dados={nome:dName.value.trim(), data:dData.value||'', terr:dTerr.value||'', ts:Date.now()};
+  if(editDir){ const it=DB.dir.items.find(x=>x.id===editDir); Object.assign(it,dados); }
+  else { DB.dir.items.push(Object.assign({id:'d'+Date.now().toString(36)+Math.random().toString(36).slice(2,6)},dados)); }
+  touchDir(); renderDirBoard(); closeDirModal(); toast('Registro salvo');
+});
+dDel.addEventListener('click', async ()=>{
+  if(!await ask('Excluir este registro?','Excluir')) return;
+  const it=DB.dir.items.find(x=>x.id===editDir);
+  if(it){ it.del=true; it.ts=Date.now(); }
+  touchDir(); renderDirBoard(); closeDirModal(); toast('Registro excluído');
+});
+
 [['fStart','start'],['fEnd','end'],['fName','name'],['fResp','resp'],['fAssign','assign'],['fStop','stop'],['fNotes','notes'],['fRefs','refs']].forEach(([id,k])=>{
   document.getElementById(id).addEventListener('input',e=>{
     DB.t[cur][k]=e.target.value; if(k==='start') DB.t[cur].started=!!e.target.value; touch(cur); if(k==='start') renderStart();
@@ -1370,7 +1525,7 @@ fileIn.addEventListener('change',e=>{
   r.onload=async ()=>{ try{ const d=JSON.parse(r.result); if(!d||!d.t) throw 0;
       if(!await ask('Restaurar este arquivo? As marcações atuais deste aparelho serão substituídas.','Restaurar')) return;
       DB=merge(d); rebuildKeys(); Object.keys(DB.t).forEach(k=>{DB.t[k].ts=Date.now(); dirty.add(k);});
-      DB.p.ts=Date.now(); dirty.add('@prog'); DB.s.ts=Date.now(); dirty.add('@saidas'); DB.cfg.ts=Date.now();
+      DB.p.ts=Date.now(); dirty.add('@prog'); DB.s.ts=Date.now(); dirty.add('@saidas'); DB.dir.ts=Date.now(); dirty.add('@dir'); DB.cfg.ts=Date.now();
       persist(); applyCongBranding();
       renderProg(); renderSaidas(); renderSummary(); renderBoard(); renderMapIndex(); fillCfgForm(); renderAbout(); toast('Restaurado');
     }catch(err){ toast('Arquivo não reconhecido'); } fileIn.value=''; };
@@ -1390,7 +1545,8 @@ function merge(d){
   if(d&&d.t) Object.keys(d.t).forEach(k=>{ t[k]=normT(d.t[k]); });
   const p = (d&&d.p&&Array.isArray(d.p.items))? {items:d.p.items,ts:d.p.ts||0} : {items:[],ts:0};
   const s = (d&&d.s&&Array.isArray(d.s.items))? {items:d.s.items,ts:d.s.ts||0} : {items:[],ts:0};
-  return {v:3,t,p,s,cfg};
+  const dir = (d&&d.dir&&Array.isArray(d.dir.items))? {items:d.dir.items,ts:d.dir.ts||0} : {items:[],ts:0};
+  return {v:3,t,p,s,dir,cfg};
 }
 function people(){ return [...new Set(KEYS.map(k=>(DB.t[k].resp||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt')); }
 function buildPeople(){ document.getElementById('people').innerHTML = people().map(p=>`<option value="${esc(p)}">`).join(''); }
@@ -1663,8 +1819,9 @@ function mergeRemote(localRaw,remoteRaw){
   });
   const p={ items: mergeItems(a.p.items,b.p.items), ts: Math.max(a.p.ts||0,b.p.ts||0) };
   const s={ items: mergeItems(a.s.items,b.s.items), ts: Math.max(a.s.ts||0,b.s.ts||0) };
+  const dir={ items: mergeItems(a.dir.items,b.dir.items), ts: Math.max(a.dir.ts||0,b.dir.ts||0) };
   const cfg = ((b.cfg&&b.cfg.ts)||0) >= ((a.cfg&&a.cfg.ts)||0) ? b.cfg : a.cfg;
-  return {v:3,t,p,s,cfg};
+  return {v:3,t,p,s,dir,cfg};
 }
 let pushT=null, pushing=false, pushAgain=false;
 function pushToCloud(){
